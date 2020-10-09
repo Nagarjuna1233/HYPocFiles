@@ -1,0 +1,42 @@
+$facetSearchConfigName=customerIndex  
+$facetSearchConfigDescription=Customer custom index
+$searchIndexNamePrefix=customerIndex  
+
+$solrIndexedType=customer             
+$indexLanguages=en                    
+
+
+# Declare the indexed type Product    
+INSERT_UPDATE SolrIndexedType ; identifier[unique=true] ; indexName        ; type(code) ; variant  ; sorts(&sortRefID)
+                              ; $solrIndexedType        ; $solrIndexedType ; Customer   ; false    ;                  
+
+INSERT_UPDATE SolrFacetSearchConfig ; name[unique=true]      ; description                   ; indexNamePrefix        ; languages(isocode) ; currencies(isocode) ; solrServerConfig(name) ; solrSearchConfig(description) ; solrIndexConfig(name) ; solrIndexedTypes(identifier) ; enabledLanguageFallbackMechanism ;  
+                                    ; $facetSearchConfigName ; $facetSearchConfigDescription ; $searchIndexNamePrefix ; $indexLanguages    ;                     ; Default                ; Default                       ; Default               ; $solrIndexedType             ; true                             ;  
+
+
+# Non-facet properties              
+INSERT_UPDATE SolrIndexedProperty ; solrIndexedType(identifier)[unique=true] ; name[unique=true] ; type(code) ; sortableType(code) ; currency[default=false] ; localized[default=false] ; multiValue[default=false] ; useForSpellchecking[default=false] ; useForAutocomplete[default=false] ; fieldValueProvider    ; valueProviderParameter ; ftsPhraseQuery[default=false] ; ftsPhraseQueryBoost ; ftsQuery[default=false] ; ftsQueryBoost ; ftsFuzzyQuery[default=false] ; ftsFuzzyQueryBoost ; ftsWildcardQuery[default=false] ; ftsWildcardQueryType(code)[default=POSTFIX] ; ftsWildcardQueryBoost ; ftsWildcardQueryMinTermLength
+                                  ; $solrIndexedType                         ; itemtype          ; string     ;                    ;                         ;                          ;                           ;                                    ;                                   ;                       ;                        ;                               ;                     ;                         ;               ;                              ;                    ;                                 ;                                             ;                       
+                                  ; $solrIndexedType                         ; uid               ; string     ;                    ;                         ;                          ;                           ; true                               ; true                              ; springELValueProvider ; uid                   ;                               ;                     ; true                    ; 90            ;                              ;                    ; true                            ; POSTFIX                                     ; 45                    ; 3                            
+                                  ; $solrIndexedType                         ; name              ; text       ; sortabletext       ;                         ; true                     ;                           ; true                               ; true                              ; springELValueProvider ; name                   ; true                          ; 100                 ; true                    ; 50            ; true                         ; 25                 ;                                 ;                                             ;                       ;                              
+
+INSERT_UPDATE SolrSearchQueryTemplate ; name[unique=true] ; indexedType(identifier)[unique=true] ; ftsQueryBuilder             ; enableHighlighting[default=true]
+                                      ; DEFAULT           ; $solrIndexedType                     ; defaultFreeTextQueryBuilder ;                                 
+
+# Non-facet search query properties   
+INSERT_UPDATE SolrSearchQueryProperty ; indexedProperty(name, solrIndexedType(identifier))[unique=true] ; searchQueryTemplate(name, indexedType(identifier))[unique=true][default=DEFAULT:$solrIndexedType] ; facet ; ftsPhraseQuery[default=false] ; ftsPhraseQueryBoost ; ftsQuery[default=false] ; ftsQueryBoost ; ftsFuzzyQuery[default=false] ; ftsFuzzyQueryBoost ; ftsWildcardQuery[default=false] ; ftsWildcardQueryType(code)[default=POSTFIX] ; ftsWildcardQueryBoost ; ftsWildcardQueryMinTermLength ; includeInResponse[default=true] ; useForHighlighting[default=false]
+                                      ; itemtype:$solrIndexedType                                       ;                                                                                                   ;       ;                               ;                     ;                         ;               ;                              ;                    ;                                 ;                                             ;                       ;                               ;                                 ;                                  
+                                      ; uid:$solrIndexedType                                            ;                                                                                                   ;       ; TRUE                          ; 90                  ;                         ;               ; TRUE                         ;                    ;                                 ; POSTFIX                                     ; 45                    ; 3                             ;                                 ;                                  
+                                      ; name:$solrIndexedType                                           ;                                                                                                   ;       ; TRUE                          ; 100                 ; TRUE                    ; 50            ; TRUE                         ; 25                 ;                                 ;                                             ;                       ;                               ;                                 ; true                             
+# Create the queries that will be used to extract data for Solr
+INSERT_UPDATE SolrIndexerQuery ; solrIndexedType(identifier)[unique=true] ; identifier[unique=true]            ; type(code) ; injectCurrentDate[default=true] ; injectCurrentTime[default=true] ; injectLastIndexTime[default=true] ; query ; user(uid)
+                               ; $solrIndexedType                         ; $searchIndexNamePrefix-fullQuery   ; full       ;                                 ;                                 ; false                             ; "     
+SELECT {PK} FROM {Customer}"; anonymous                                
+
+                               ; $solrIndexedType                         ; $searchIndexNamePrefix-updateQuery ; update     ;                                 ;                                 ;                                   ; "     
+SELECT {PK} FROM {Customer} WHERE {PK} IS NULL
+"                              ; anonymous                                
+
+
+INSERT_UPDATE CMSSite ; uid[unique=true] ; customerSolrFacetSearchConfiguration(name)
+                      ; electronics      ; $facetSearchConfigName                      
