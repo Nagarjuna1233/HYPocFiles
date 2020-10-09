@@ -1,0 +1,88 @@
+@CustomCacheable(type = "CustomType", key = "T(com.apple.ist.sap.asb2b.framework.cache.key.DefaultCacheKeyGenerator).generateKey(false,true,#context.cmsPageId)")
+
+
+Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface CustomCacheable
+{
+  String key() default "";
+
+  String type() default "";
+}
+
+
+@Aspect
+public class CustomCacheableAspect
+{
+  private static final Logger LOG = Logger.getLogger(CustomCacheableAspect.class);
+
+  private static final String CACHE_ENABLED_KEY = "cache.%s.enabled";
+
+  private CacheController cacheController;
+
+  private ParameterNameDiscoverer parameterNameDiscoverer;
+
+  private CustomCacheService CustomCacheService;
+
+
+  @Around("@annotation(com.Custom.ist.sap.asb2b.framework.cache.aspect.annotation.CustomCacheable)")
+  public Object cacheData(final ProceedingJoinPoint joinPoint) throws Throwable
+  {
+    if (isCacheDisabled(joinPoint))
+    {
+      return joinPoint.proceed();
+    }
+
+    CustomCacheKey cacheKey = getCustomCacheKey(joinPoint);
+
+    Object result = getCacheController().get(cacheKey);
+
+    if (Objects.isNull(result))
+    {
+      Object response = joinPoint.proceed();
+      return this.getWithLoader(cacheKey, key -> response);
+    }
+    else if (LOG.isDebugEnabled())
+    {
+      LOG.debug(String.format("Data loaded from cache : %s with key : %s", cacheKey.getTypeCode(), cacheKey.toString()));
+    }
+    return result;
+  }
+
+  protected boolean isCacheDisabled(final ProceedingJoinPoint joinPoint)
+  {
+    return BooleanUtils
+        .isFalse(Config.getBoolean(String.format(CACHE_ENABLED_KEY, getAnotation(joinPoint.getSignature()).type()), true));
+  }
+
+  protected CustomCacheKey getCustomCacheKey(final ProceedingJoinPoint joinPoint)
+  {
+    final MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+
+    CustomCacheable annotation = getAnotation(signature);
+
+    ExpressionParser parser = new SpelExpressionParser();
+
+    MethodBasedEvaluationContext context = new MethodBasedEvaluationContext(null, signature.getMethod(), joinPoint.getArgs(),
+        getParameterNameDiscoverer());
+    return getCustomCacheService().createCacheKey(parser.parseExpression(annotation.key()).getValue(context), annotation.type());
+  }
+
+  protected CustomCacheable getAnotation(final Signature signature)
+  {
+    return ((MethodSignature) signature).getMethod().getAnnotation(CustomCacheable.class);
+  }
+
+
+  protected <V> V getWithLoader(final CustomCacheKey cacheKey, final Function<CustomCacheKey, V> valueLoader)
+  {
+    return this.getCacheController().getWithLoader(cacheKey, key -> valueLoader.apply(cacheKey));
+  }
+
+}
+
+Note : should be detete cache when changes hppens on Item Value from AfterSaveListner
+=================================
+getCacheController().invalidate(CacheKey());
