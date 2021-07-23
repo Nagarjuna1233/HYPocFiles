@@ -18,4 +18,4 @@ sonar.dynamicAnalysis=reuseReports
 sonar.coverage.jacoco.xmlReportPaths=<path>/hybris_coverage_report.xml
 sonar.jacoco.reportPath=${HYBRIS_LOG_DIR}/jacoco/jacoco.exec
 sonar.junit.reportPaths=${HYBRIS_LOG_DIR}/jacoco
-standalone.javaoptions=-javaagent:/Users/gunagarjuna/Desktop/jacocoagent.jar=destfile=${HYBRIS_LOG_DIR}/jacoco/jacoco.exec,append=true,excludes=com.sun.*:de.hybris.platform.*
+standalone.javaoptions=-javaagent: <jar path>/jacocoagent.jar=destfile=${HYBRIS_LOG_DIR}/jacoco/jacoco.exec,append=true,excludes=com.sun.*:de.hybris.platform.*
