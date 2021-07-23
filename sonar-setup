@@ -1,0 +1,21 @@
+ant sonarcheck -Dsonar.extensions <extensions with comma saperate> -Dsonar.projectName "<project name>" -Dsonar.projectKey <projectkey>
+
+ant unittests -Dtestclasses.annotations=unittest  -Dtestclasses.extensions=<extensions with comma saperate>
+
+java -cp org.jacoco.cli-0.8.5.jar:*  org.jacoco.cli.internal.Main  report jacoco.exec  --xml <path>/hybris_coverage_report.xml --name MergeCode --classfiles <project path> --classfiles <project path> ...... 
+
+sonar.projectName=<project name>
+sonar.projectKey=<projectkey>
+sonar.projectVersion=1.0
+#for SonarQube > 6.4
+sonar.host.url=http://localhost:9000
+sonar.login=62ea785c36dd5e843c25ff4c8a440e35162f657f
+sonar.language=java
+sonar.java.coveragePlugin=jacoco
+sonar.tests=testsrc
+sonar.binaries=classes
+sonar.dynamicAnalysis=reuseReports
+sonar.coverage.jacoco.xmlReportPaths=<path>/hybris_coverage_report.xml
+sonar.jacoco.reportPath=${HYBRIS_LOG_DIR}/jacoco/jacoco.exec
+sonar.junit.reportPaths=${HYBRIS_LOG_DIR}/jacoco
+standalone.javaoptions=-javaagent:/Users/gunagarjuna/Desktop/jacocoagent.jar=destfile=${HYBRIS_LOG_DIR}/jacoco/jacoco.exec,append=true,excludes=com.sun.*:de.hybris.platform.*
